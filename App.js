@@ -1,12 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, NativeModules, NativeEventEmitter, Button } from 'react-native';
 
 export default function App() {
+  const { ExampleModule } = NativeModules
+  const eventEmitter = new NativeEventEmitter(ExampleModule);
+
+  const subscription = eventEmitter.addListener("onMessagePrinted", (event) => {
+    console.log('On Message Event Emmited: ', event.value)
+  })
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Text>Native module app!</Text>
+      <Button title="Click me" onPress={() => ExampleModule.printMessage("Olá Teste", 17)} />
+
+      <Button 
+        title="Click me for returnMessage" 
+        onPress={() => {
+          ExampleModule.returnMessage("João")
+          .then(message => console.log(message))
+          .catch((err) => console.error(err))
+        }} />
+
+      <Button title="Click me for eventMessage" onPress={() => ExampleModule.eventMessage(17)} />
+
+      <Button title="Remove eventMessage" onPress={() => subscription.remove()} />
     </View>
   );
 }
